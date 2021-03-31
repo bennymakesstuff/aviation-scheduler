@@ -21,17 +21,17 @@ const routes = [
     component: Home
   },
   {
-    path: "/",
+    path: "/login",
     name: "login",
     component: Login
   },
   {
-    path: "/",
+    path: "/register",
     name: "register",
     component: Register
   },
   {
-    path: "/",
+    path: "/forgot",
     name: "forgot",
     component: Forgot
   },

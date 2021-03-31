@@ -8,6 +8,7 @@
     <div v-if="!loggedIn" class="logged-out">
       <h1>{{this.$store.state.app_settings.name}}</h1>
       <main-menu/>
+      <router-view></router-view>
     </div>
 
   </div>
