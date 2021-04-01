@@ -2,6 +2,7 @@
 
 import Vue from 'vue'
 import Vuex from 'vuex'
+import { noteyStore } from '@/notifications'
 
 Vue.use(Vuex);
 
@@ -11,6 +12,9 @@ Vue.use(Vuex);
 
 
 export default new Vuex.Store({
+  modules: {
+    notey: noteyStore
+  },
   state: {
     app_settings: {
       name: 'Template Application'
