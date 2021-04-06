@@ -2,7 +2,7 @@
 
 import Vue from 'vue'
 import Vuex from 'vuex'
-import { noteyStore } from '@/notifications'
+import { notifayeStore } from '@/notifications'
 
 Vue.use(Vuex);
 
@@ -13,7 +13,7 @@ Vue.use(Vuex);
 
 export default new Vuex.Store({
   modules: {
-    notey: noteyStore
+    notifaye: notifayeStore
   },
   state: {
     app_settings: {
@@ -27,7 +27,7 @@ export default new Vuex.Store({
     add_notey (context){
       return new Promise((resolve, reject) => {
 
-        Vue.prototype.$notey.add('Something');
+        Vue.prototype.$notifaye.add('Something');
 
       });
     },

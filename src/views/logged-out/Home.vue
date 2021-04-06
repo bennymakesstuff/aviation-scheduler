@@ -23,20 +23,18 @@
       <button @click="removeOldest">Delete Oldest</button>
     </div>
 
-    <div class="notification-area">
-      <div class="notification" v-for="note in notes">
-        <div class="title">{{note.title}}</div>
-        <div class="content">{{note.content}}</div>
-      </div>
-    </div>
+    <notification-area :list="notes"/>
   </div>
 </template>
 
 <script>
-//import API from '@/requests'
+import NotificationList from '@/notifications/components/notifayeToast.vue';
 
 export default {
   name: 'home',
+  components: {
+    'notification-area':NotificationList
+  },
   data: function(){
     return {
       waitStatus: 'Ready',
@@ -44,7 +42,6 @@ export default {
       selectedQueue: 'default',
       notificationTitle: '',
       notificationContent: '',
-
     }
   },
   mounted(){
@@ -52,21 +49,22 @@ export default {
   },
   computed: {
     notes: function(){
-      return this.$notey.notes(this.selectedQueue) || null;
+      console.log(this.$notifaye.notes(this.selectedQueue));
+      return this.$notifaye.notes(this.selectedQueue) || null;
     },
     noteCounter: function(){
-      return this.$notey.count(this.selectedQueue) || 0;
+      return this.$notifaye.count(this.selectedQueue) || 0;
     },
     queues: function(){
-      return this.$notey.listQueues();
+      return this.$notifaye.listQueues();
     }
   },
   methods: {
       dessimate: function(){
-        this.$notey.dessimate(this.selectedQueue);
+        this.$notifaye.dessimate(this.selectedQueue);
       },
       add_note: function(){
-        this.$notey.add({title:this.notificationTitle, content:this.notificationContent}, this.selectedQueue);
+        this.$notifaye.add({title:this.notificationTitle, content:this.notificationContent, timeout: 5000}, this.selectedQueue);
       },
       new_queue: function(){
         let newQueueConfig = {
@@ -74,16 +72,16 @@ export default {
           notificationTimeout: 5000,
           notifications: []
         };
-        this.$notey.newQueue(newQueueConfig);
+        this.$notifaye.newQueue(newQueueConfig);
       },
       listTheQueues: function(){
-          console.log(this.$notey.listQueues());
+          console.log(this.$notifaye.listQueues());
       },
       removeOldest: function(){
-        this.$notey.removeOldest(this.selectedQueue);
+        this.$notifaye.removeOldest(this.selectedQueue);
       },
       removeNewest: function(){
-        this.$notey.removeNewest(this.selectedQueue);
+        this.$notifaye.removeNewest(this.selectedQueue);
       },
   }
 }

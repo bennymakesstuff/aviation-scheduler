@@ -10,7 +10,9 @@ const convertToQueueName = function(nameToConvert){
   return nameToConvert.replace(/[^A-Z0-9]+/ig, "-").toLowerCase();
 }
 
-let noteyStore = Vue.observable({
+
+// The Vuex Plugin
+let notifayeStore = Vue.observable({
 
   namespaced: true,
 
@@ -31,7 +33,7 @@ let noteyStore = Vue.observable({
   getters: {
 
     returnQueue: state => queueToUse => {
-      return state.queues[queueToUse].notifications;
+      return state.queues[queueToUse];
     },
 
     countQueue: state => queueToUse => {
@@ -81,7 +83,18 @@ let noteyStore = Vue.observable({
       newQueueConfig['queueName'] = convertToQueueName(newQueueConfig.title);
 
       Vue.set(state.queues, newQueueConfig.queueName, newQueueConfig);
-      console.log(state.queues);
+    },
+
+    START_TIMER (state, noteSettings){
+      Vue.set(state.queues[noteSettings.queue].notifications[noteSettings.notificationIndex], 'timeout', setTimeout(()=>{Vue.prototype.$notifaye.complete(noteSettings.notificationIndex,noteSettings.queue)}, noteSettings.timeout));
+    },
+
+    DESTROY_NOTIFICATION(state, noteData){
+      console.log(state.queues[noteData.queue].notifications);
+      state.queues[noteData.queue].notifications.splice(noteData.notificationIndex, 1);
+      console.log('Deleted Note#'+ noteData.notificationIndex +' in '+ noteData.queue);
+      console.log(state.queues[noteData.queue].notifications);
+
     }
   },
 
@@ -89,10 +102,8 @@ let noteyStore = Vue.observable({
 
   actions: {
     // Add a new note to a queue
-    add(context, notificationData) {
-      console.log('QUEUE: '+notificationData.queueToUse);
-      context.commit('ADD_NOTE', notificationData);
-      //context.commit('ADD_NOTE', noteData, queueToUse);
+    add(context, noteData) {
+      context.commit('ADD_NOTE', noteData);
     },
     create_note(context, noteData, queueToUse){
       context.commit('ADD_NOTE', noteData, queueToUse);
@@ -125,26 +136,49 @@ let noteyStore = Vue.observable({
 
     // Helper function for the above new_queue function - may be dissolved once above problem is solved.
     create_queue(context, newQueueConfig){
-      console.log(newQueueConfig);
       context.commit('NEW_QUEUE', newQueueConfig);
     },
 
     // Flush a notification queue
     dessimate(context, queueToUse = 'default') {
       context.commit('DESSIMATE_LIST', queueToUse);
+    },
+
+    // Starts the timer in a given notification
+    start_timer({state, dispatch}, noteData){
+      // Check if the queue and notification exists and if so, check if the notification has its own timeout setting.
+      // If not use the timeout setting from the queue.
+      if(state.queues.hasOwnProperty(noteData.queueToUse)&&typeof state.queues[noteData.queueToUse].notifications[noteData.note] !== 'undefined'){
+        let notification = state.queues[noteData.queueToUse].notifications[noteData.note];
+        let timeoutLength = (notification.hasOwnProperty('timeout'))?notification.timeout : state.queues[queueToUse].notificationTimeout;
+        dispatch('begin_timeout',{queue:noteData.queueToUse,notificationIndex:noteData.note, timeout:timeoutLength});
+      }
+      else{
+        console.log('Note does not exist');
+      }
+    },
+
+    // Calls the mutation to set a timeout
+    begin_timeout(context, noteSettings){
+      context.commit('START_TIMER',noteSettings);
+    },
+
+    // Removes a notification at a given index (Mainly used on completion)
+    delete_specific(context, noteData){
+      context.commit('DESTROY_NOTIFICATION', noteData);
     }
   },
 });
 
 
 
-// The Notey Object
-let notey = {
+// The notifaye Vue Plugin Object
+let notifaye = {
 
    // This install function gets triggered when Vue.use() is invoked passing in the plugin.
    install(Vue, store) {
 
-    Vue.prototype.$notey = {
+    Vue.prototype.$notifaye = {
 
       // Vuex Store for Notifications Module
       // You must add Notifications to Module
@@ -152,63 +186,63 @@ let notey = {
 
       // Return the number of notifications in a queue
       count: function(queueToUse = 'default'){
-        return this.store.getters['notey/countQueue'](queueToUse);
+        return this.store.getters['notifaye/countQueue'](queueToUse);
       },
 
       // Return the notifications in a queue
       notes: function(queueToUse = 'default'){
-        return this.store.getters['notey/returnQueue'](queueToUse);
+        return this.store.getters['notifaye/returnQueue'](queueToUse);
       },
 
       // Lists the Queues available
       listQueues: function(){
-        return this.store.getters['notey/listQueues'];
+        return this.store.getters['notifaye/listQueues'];
       },
 
       // Adds a notification to a queue
       add: function(notification, queueToUse = 'default'){
         console.log('Add a Notification to ' + queueToUse + ' queue.');
         //notification = {test: 'Test'};
-        this.store.dispatch('notey/add', {note:notification, queueToUse:queueToUse});
+        this.store.dispatch('notifaye/add', {note:notification, queueToUse:queueToUse});
       },
 
       // Creates a New Queue
       newQueue: function(newQueueConfig = null){
-        this.store.dispatch('notey/new_queue', newQueueConfig);
+        this.store.dispatch('notifaye/new_queue', newQueueConfig);
       },
 
       // Flushes all notifications from a queue
       dessimate: function(queueToUse = 'default'){
-        this.store.dispatch('notey/dessimate', queueToUse);
+        this.store.dispatch('notifaye/dessimate', queueToUse);
       },
 
       // Removes the most recent notification from a queue
       removeNewest: function(queueToUse = 'default'){
-        this.store.dispatch('notey/delete_newest', queueToUse);
+        this.store.dispatch('notifaye/delete_newest', queueToUse);
       },
 
       // Removes the oldest notification from a queue
       removeOldest: function(queueToUse = 'default'){
-        this.store.dispatch('notey/delete_oldest', queueToUse);
+        this.store.dispatch('notifaye/delete_oldest', queueToUse);
+      },
+
+      // Starts the timeout on a particular notification
+      startTimer: function(queueName, notificationIndex){
+        this.store.dispatch('notifaye/start_timer', {queueToUse:queueName, note:notificationIndex});
+      },
+
+      complete: function(noteIndex, queueName){
+        this.store.dispatch('notifaye/delete_specific', {queue: queueName, notificationIndex:noteIndex});
+        console.log('COMPLETED Note#'+ noteIndex +' in '+ queueName);
       },
 
     }
-
-
-    // Don't think this code is necessary at this stage.
-     Vue.mixin({
-       //This mixin is fired every time a component is created.
-        mounted(){
-          console.log('Mounted');
-        }
-      });
-
-   }
-
 }
+};
 
 
 export {
-  noteyStore,
-  notey
+  notifayeStore,
+  notifaye,
+
 }

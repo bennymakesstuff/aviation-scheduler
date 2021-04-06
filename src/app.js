@@ -2,9 +2,9 @@ import Vue from 'vue'
 import App from './App.vue'
 import router from './router'
 import store from './store'
-import { notey } from './notifications'
+import { notifaye } from './notifications'
 
-Vue.use(notey, store);
+Vue.use(notifaye, store);
 
 new Vue({
   el: '#app',
