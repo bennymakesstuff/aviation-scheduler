@@ -1,6 +1,7 @@
 <template>
     <div class="notification">
-      <div class="title">{{this.$props.data.title}} - {{this.$props.noteindex}}</div>
+      <div class="title">{{this.$props.data.title}} - {{this.$props.data.noteid}}</div>
+      <div class="title" v-if="static">Static Notification<span @click="removeEarly">X</span></div>
       <div class="content">{{this.$props.data.content}}</div>
       <div class="content">{{this.$props.data.timeout}}</div>
     </div>
@@ -21,9 +22,6 @@ export default {
     data: {
       type: Object
     },
-    noteindex: {
-      type: Number
-    },
     queue: {
       type: String
     }
@@ -33,11 +31,15 @@ export default {
     this.startTimer();
   },
   computed: {
-
+    static: function(){
+      return (this.$props.data.static==true)?true:false;
+    }
   },
   methods: {
     startTimer: function(){
-      this.$notifaye.startTimer(this.queue, this.noteindex);
+      //Possibly move the static logic into the index file on the $notifaye object so that even if the function is called the object manages it.
+      this.$notifaye.startTimer(this.queue, this.data.noteid);
+
     },
     pauseTimer: function(){
 
@@ -46,7 +48,8 @@ export default {
 
     },
     removeEarly: function(){
-
+      console.log('Remove Early');
+      this.$notifaye.removeNotification(this.queue, this.data.noteid);
     }
   }
 }

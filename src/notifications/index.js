@@ -5,11 +5,29 @@ import Vue from 'vue';
 // The Notification Queue acts in a first in last out fashion
 // There might be a potential for it to act in a first in first out fashion by option.
 
+
+// OUSTADING ISSUE!
+// Sometimes the timeout property on a notification is the desired time before the function runs (e.g. 5000ms),
+// sometimes it is a reference to the timeout function itself (e.g. timeout #19).
+// I need to resolve this issue so it is always clear. That should fix the issue of
+// notifications being run instantly and dissapearing when there is a router change and you navigate
+// back to the page with the notifications.
+// Especially needed where notifications will be on the many pages.
+
+
 // The Notification Queue can have multiple notification queues and that can all opperate individually.
 const convertToQueueName = function(nameToConvert){
   return nameToConvert.replace(/[^A-Z0-9]+/ig, "-").toLowerCase();
 }
 
+const getIndex = function(haystack, needle){
+  for(let i = 0;i < haystack.notifications.length;i++){
+    if(haystack.notifications[i].noteid==needle){
+      return i;
+    }
+  }
+  return false;
+}
 
 // The Vuex Plugin
 let notifayeStore = Vue.observable({
@@ -17,6 +35,7 @@ let notifayeStore = Vue.observable({
   namespaced: true,
 
   state: () => ({
+    verbose: false,
     queues: {
       // Queues contains a "default" queue, by default. More can be added.
       // Default is required for it to function on the beginning.
@@ -24,13 +43,17 @@ let notifayeStore = Vue.observable({
         title: 'Default',
         queueName: 'default',
         notificationTimeout: 2000,
-        notifications: []
+        notifications: [],
+        queueCounter: 0
       }
     }
   }),
 
 
   getters: {
+    notifayeVerbose: state => {
+        return state.verbose;
+    },
 
     returnQueue: state => queueToUse => {
       return state.queues[queueToUse];
@@ -47,9 +70,7 @@ let notifayeStore = Vue.observable({
     listQueues: (state) => {
       let queues = [];
       for (var prop in state.queues) {
-          //if (Object.prototype.hasOwnProperty.call(state.queues, prop)) {
-              queues.push(state.queues[prop]);
-        //  }
+        queues.push(state.queues[prop]);
       }
       return queues;
     }
@@ -61,9 +82,13 @@ let notifayeStore = Vue.observable({
   // call a mutation from somewhere other than this module, the defaults are still used when needed.
   mutations: {
     ADD_NOTE (state, notificationData){
-      console.log(notificationData.note);
-      console.log(notificationData.queueToUse);
+      let queueCount = state.queues[notificationData.queueToUse].queueCounter;
+      notificationData.note['noteid'] = queueCount + 1;
+      if(parseInt(notificationData.note.timeout)<1){
+        notificationData.note.static = true;
+      }
       state.queues[notificationData.queueToUse].notifications.push(notificationData.note);
+      state.queues[notificationData.queueToUse].queueCounter++;
     },
 
     DESSIMATE_LIST (state, queueToUse = 'default'){
@@ -81,20 +106,32 @@ let notifayeStore = Vue.observable({
     NEW_QUEUE (state, newQueueConfig){
       // Need to add a function to check for queue title clashes
       newQueueConfig['queueName'] = convertToQueueName(newQueueConfig.title);
-
+      newQueueConfig['queueCounter'] = 0;
       Vue.set(state.queues, newQueueConfig.queueName, newQueueConfig);
     },
 
     START_TIMER (state, noteSettings){
-      Vue.set(state.queues[noteSettings.queue].notifications[noteSettings.notificationIndex], 'timeout', setTimeout(()=>{Vue.prototype.$notifaye.complete(noteSettings.notificationIndex,noteSettings.queue)}, noteSettings.timeout));
+      if(noteSettings.noteIndex!==false){
+        Vue.set(state.queues[noteSettings.queue].notifications[noteSettings.noteIndex], 'timeout', setTimeout(()=>{Vue.prototype.$notifaye.complete(noteSettings.notificationPosition,noteSettings.queue)}, noteSettings.timeout));
+      }
+      else{
+        console.log('Timeout not set');
+      }
     },
 
     DESTROY_NOTIFICATION(state, noteData){
-      console.log(state.queues[noteData.queue].notifications);
-      state.queues[noteData.queue].notifications.splice(noteData.notificationIndex, 1);
-      console.log('Deleted Note#'+ noteData.notificationIndex +' in '+ noteData.queue);
-      console.log(state.queues[noteData.queue].notifications);
+      let noteIndex = getIndex(state.queues[noteData.queue],noteData.notificationIndex);
+      if(noteIndex!==false){
+        state.queues[noteData.queue].notifications.splice(noteIndex, 1);
 
+        //Check for any remaining notifcations, if none, reset the counter.
+        if(state.queues[noteData.queue].notifications.length==0){
+          state.queues[noteData.queue].queueCounter = 0;
+        }
+      }
+      else{
+        console.log('Could not delete notification');
+      }
     }
   },
 
@@ -148,10 +185,20 @@ let notifayeStore = Vue.observable({
     start_timer({state, dispatch}, noteData){
       // Check if the queue and notification exists and if so, check if the notification has its own timeout setting.
       // If not use the timeout setting from the queue.
-      if(state.queues.hasOwnProperty(noteData.queueToUse)&&typeof state.queues[noteData.queueToUse].notifications[noteData.note] !== 'undefined'){
-        let notification = state.queues[noteData.queueToUse].notifications[noteData.note];
-        let timeoutLength = (notification.hasOwnProperty('timeout'))?notification.timeout : state.queues[queueToUse].notificationTimeout;
-        dispatch('begin_timeout',{queue:noteData.queueToUse,notificationIndex:noteData.note, timeout:timeoutLength});
+      if(state.queues.hasOwnProperty(noteData.queueToUse)/*&&typeof state.queues[noteData.queueToUse].notifications[noteData.note] !== 'undefined'*/){
+        let noteIndex = getIndex(state.queues[noteData.queueToUse],noteData.note);
+        if(noteIndex!==false){
+          let notification = state.queues[noteData.queueToUse].notifications[noteIndex];
+          console.log('notification');
+          console.log(notification);
+          if(notification.static===false){
+            let timeoutLength = (notification.hasOwnProperty('timeout'))?notification.timeout : state.queues[queueToUse].notificationTimeout;
+            dispatch('begin_timeout',{queue:noteData.queueToUse,notificationPosition:noteData.note, noteIndex: noteIndex, timeout:timeoutLength});
+          }
+        }
+        else{
+          console.log('Note witht id '+noteData.note+' does not exist');
+        }
       }
       else{
         console.log('Note does not exist');
@@ -227,13 +274,23 @@ let notifaye = {
       },
 
       // Starts the timeout on a particular notification
-      startTimer: function(queueName, notificationIndex){
-        this.store.dispatch('notifaye/start_timer', {queueToUse:queueName, note:notificationIndex});
+      startTimer: function(queueName, notificationPosition){
+        console.log('Note Position: '+notificationPosition)
+        this.store.dispatch('notifaye/start_timer', {queueToUse:queueName, note:notificationPosition});
+      },
+
+      // Removes a timeout imediately
+      removeNotification: function(queueName, notificationPosition){
+        console.log('Note Position: '+notificationPosition)
+        this.store.dispatch('notifaye/delete_specific', {queue:queueName, notificationIndex:notificationPosition});
       },
 
       complete: function(noteIndex, queueName){
         this.store.dispatch('notifaye/delete_specific', {queue: queueName, notificationIndex:noteIndex});
-        console.log('COMPLETED Note#'+ noteIndex +' in '+ queueName);
+        if(this.store.getters.notifayeVerbose===true){
+          console.log('Completed Note #'+ noteIndex +' in queue \''+ queueName+'\'');
+        }
+
       },
 
     }
@@ -243,6 +300,5 @@ let notifaye = {
 
 export {
   notifayeStore,
-  notifaye,
-
+  notifaye
 }

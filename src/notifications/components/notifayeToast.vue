@@ -1,7 +1,7 @@
 <template>
     <div class="notification-area">
       <h1>{{list.queueName}}</h1>
-      <Note v-for="(note, index) in list.notifications" :noteindex="index" :queue="list.queueName" :data="note"/>
+      <Note v-for="note in list.notifications" :queue="list.queueName" :data="note" :key="list.queueName+'-'+note.noteid"/>
     </div>
 </template>
 

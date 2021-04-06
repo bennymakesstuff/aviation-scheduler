@@ -10,6 +10,8 @@
       <h1>Notes</h1>
       <input type="text" v-model="notificationTitle" placeholder="Notification Title"/>
       <input type="text" v-model="notificationContent" placeholder="Content"/>
+      <input type="checkbox" v-model="notificationStatic"/>
+      <input type="text" v-model="notificationTimeout" placeholder="Timeout"/>
       <button @click="add_note">Add Note</button>
     </div>
     <div>
@@ -42,6 +44,8 @@ export default {
       selectedQueue: 'default',
       notificationTitle: '',
       notificationContent: '',
+      notificationStatic: false,
+      notificationTimeout: 5000
     }
   },
   mounted(){
@@ -64,7 +68,8 @@ export default {
         this.$notifaye.dessimate(this.selectedQueue);
       },
       add_note: function(){
-        this.$notifaye.add({title:this.notificationTitle, content:this.notificationContent, timeout: 5000}, this.selectedQueue);
+        console.log(this.notificationStatic);
+        this.$notifaye.add({title:this.notificationTitle, content:this.notificationContent, timeout: this.notificationTimeout, static:this.notificationStatic}, this.selectedQueue);
       },
       new_queue: function(){
         let newQueueConfig = {
