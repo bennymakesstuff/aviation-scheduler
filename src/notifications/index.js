@@ -35,10 +35,11 @@ let notifayeStore = Vue.observable({
   namespaced: true,
 
   state: () => ({
-    verbose: false,
+    verbose: true,
     queues: {
       // Queues contains a "default" queue, by default. More can be added.
       // Default is required for it to function on the beginning.
+      // Other queues can be passed in as objects in the options at instantiation
       default: {
         title: 'Default',
         queueName: 'default',
@@ -51,7 +52,7 @@ let notifayeStore = Vue.observable({
 
 
   getters: {
-    notifayeVerbose: state => {
+    isVerbose: state => {
         return state.verbose;
     },
 
@@ -238,6 +239,9 @@ let notifaye = {
 
       // Return the notifications in a queue
       notes: function(queueToUse = 'default'){
+        if(this.store.getters['notifaye/isVerbose']===true){
+          console.table(this.store.getters['notifaye/returnQueue'](queueToUse).notifications);
+        }
         return this.store.getters['notifaye/returnQueue'](queueToUse);
       },
 
@@ -248,8 +252,6 @@ let notifaye = {
 
       // Adds a notification to a queue
       add: function(notification, queueToUse = 'default'){
-        console.log('Add a Notification to ' + queueToUse + ' queue.');
-        //notification = {test: 'Test'};
         this.store.dispatch('notifaye/add', {note:notification, queueToUse:queueToUse});
       },
 
@@ -275,20 +277,18 @@ let notifaye = {
 
       // Starts the timeout on a particular notification
       startTimer: function(queueName, notificationPosition){
-        console.log('Note Position: '+notificationPosition)
         this.store.dispatch('notifaye/start_timer', {queueToUse:queueName, note:notificationPosition});
       },
 
       // Removes a timeout imediately
       removeNotification: function(queueName, notificationPosition){
-        console.log('Note Position: '+notificationPosition)
         this.store.dispatch('notifaye/delete_specific', {queue:queueName, notificationIndex:notificationPosition});
       },
 
       complete: function(noteIndex, queueName){
         this.store.dispatch('notifaye/delete_specific', {queue: queueName, notificationIndex:noteIndex});
-        if(this.store.getters.notifayeVerbose===true){
-          console.log('Completed Note #'+ noteIndex +' in queue \''+ queueName+'\'');
+        if(this.store.getters['notifaye/isVerbose']===true){
+          console.log("%cCompleted Note #"+ noteIndex +" in queue \'"+ queueName+"\'", "color: #3e503e; font-style: bold; background-color: #d4dfd4;padding: 0.5rem;");
         }
 
       },

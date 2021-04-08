@@ -8,23 +8,38 @@
     <div v-if="!loggedIn" class="logged-out">
       <h1>{{this.$store.state.app_settings.name}}</h1>
       <main-menu/>
-      <router-view></router-view>
+      <router-view v-on:listchange="listchange"></router-view>
     </div>
+
+<notification-area :list="notes"/>
 
   </div>
 </template>
 
 <script>
 import MainMenu from '@/views/logged-out/MainMenu.vue'
+import NotificationList from '@/notifications/components/notifayeToast.vue';
 
 export default {
   name: 'main-entry',
   components: {
+    'notification-area':NotificationList,
     'main-menu': MainMenu
   },
   data: function(){
     return {
-      loggedIn: false
+      loggedIn: false,
+      currentList: 'default'
+    }
+  },
+  computed: {
+    notes: function(){
+      return this.$notifaye.notes(this.selectedQueue) || null;
+    },
+  },
+  methods: {
+    listchange: function(data){
+      this.currentList = data;
     }
   }
 }

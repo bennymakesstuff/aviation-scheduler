@@ -16,7 +16,7 @@
     </div>
     <div>
       <h1>Actions</h1>
-      <select v-model="selectedQueue">
+      <select v-model="selectedQueue" @change="changeList">
         <option v-for="queue in queues" :value="queue.queueName">{{queue.title}}</option>
       </select>
       <button @click="dessimate">Dessimate</button>
@@ -25,18 +25,14 @@
       <button @click="removeOldest">Delete Oldest</button>
     </div>
 
-    <notification-area :list="notes"/>
   </div>
 </template>
 
 <script>
-import NotificationList from '@/notifications/components/notifayeToast.vue';
+
 
 export default {
   name: 'home',
-  components: {
-    'notification-area':NotificationList
-  },
   data: function(){
     return {
       waitStatus: 'Ready',
@@ -49,13 +45,9 @@ export default {
     }
   },
   mounted(){
-
+    this.changeList();
   },
   computed: {
-    notes: function(){
-      console.log(this.$notifaye.notes(this.selectedQueue));
-      return this.$notifaye.notes(this.selectedQueue) || null;
-    },
     noteCounter: function(){
       return this.$notifaye.count(this.selectedQueue) || 0;
     },
@@ -64,6 +56,9 @@ export default {
     }
   },
   methods: {
+    changeList: function(){
+      this.$emit('listchange',this.selectedQueue);
+    },
       dessimate: function(){
         this.$notifaye.dessimate(this.selectedQueue);
       },

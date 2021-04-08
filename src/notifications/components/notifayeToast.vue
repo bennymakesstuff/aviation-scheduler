@@ -31,7 +31,7 @@ export default {
   methods: {
     startTimer: function(){
 
-    }
+    },
   }
 }
 </script>
@@ -58,6 +58,7 @@ export default {
                       height: auto;
                       width: 20rem;
                       transition: height 0.4s ease;
+                      z-index:100;
 
 
                       > .notification {margin: 0.5rem;
