@@ -9,6 +9,10 @@ Vue.use(Vuex);
 // Notey can be access at Vue.prototype.$notey
 // Requests can be accessed at Vue.prototype.$
 
+function tomorrowsDate(){
+  let timestamp = Date.now();
+  return timestamp;
+}
 
 
 export default new Vuex.Store({
@@ -18,7 +22,8 @@ export default new Vuex.Store({
   state: {
     app_settings: {
       name: 'Aviator',
-      theme: 'light'
+      theme: 'light',
+      displayedDate: tomorrowsDate(),
     },
     loggedIn: true,
     user_settings: {
@@ -57,7 +62,20 @@ export default new Vuex.Store({
 
     TOGGLE_SHOW_HALF_HOUR (state){
       state.user_settings.gui.showHalfHours = !state.user_settings.gui.showHalfHours;
+    },
+
+    // Date Mutations
+    INCREMENT_DISPLAYED_DATE (state){
+      console.log('Increment Method');
+      let newDate = state.app_settings.displayedDate.setDate(state.app_settings.displayedDate.getDate() + 1);
+      console.log(newDate);
+      state.app_settings.displayedDate = newDate;
+    },
+    DECREMENT_DISPLAYED_DATE (state){
+      let newDate = state.app_settings.displayedDate.setDate(state.app_settings.displayedDate.getDate() - 1);
+      state.app_settings.displayedDate = newDate;
     }
+
   },
   actions: {
 
@@ -75,6 +93,16 @@ export default new Vuex.Store({
 
     toggle_show_half_hour (context){
       context.commit('TOGGLE_SHOW_HALF_HOUR');
+    },
+
+    // Date Actions
+    increment_displayed_date (context){
+      console.log('Increment Action');
+      context.commit('INCREMENT_DISPLAYED_DATE');
+    },
+
+    decrement_displayed_date (context){
+      context.commit('DECREMENT_DISPLAYED_DATE');
     }
 
   },

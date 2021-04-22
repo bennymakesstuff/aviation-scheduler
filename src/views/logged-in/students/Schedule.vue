@@ -5,12 +5,15 @@
       <div class="calendar">
 
         <div class="controls">
-          <div class="left">Left</div>
+          <div class="left">
+            <button @click="backOneDay"><</button>
+            <button @click="forwardOneDay">></button>
+          </div>
           <div class="gap"></div>
-          <div class="center">center</div>
+          <div class="center">{{displayedDate}}</div>
           <div class="gap"></div>
           <div class="right">
-            View: 
+            View:
             <select v-model="view">
               <option value="day">Day</option>
               <option value="week">Week</option>
@@ -49,10 +52,22 @@ export default {
 
   },
   computed: {
+    displayedDate: function(){
+      let milliseconds = this.$store.state.app_settings.displayedDate * 1000;
+      let date = new Date(milliseconds);
 
+      let dateString = date.toLocaleString("en-US", {weekday: "long"})+' '+date.toLocaleString("en-US", {day: "numeric"})+' '+date.toLocaleString("en-US", {month: "long"})+' '+date.toLocaleString("en-US", {year: "numeric"});
+
+      return dateString;
+    }
   },
   methods: {
-
+    backOneDay:function(){
+      this.$store.dispatch('decrement_displayed_date');
+    },
+    forwardOneDay: function(){
+      this.$store.dispatch('increment_displayed_date');
+    }
   }
 }
 </script>
