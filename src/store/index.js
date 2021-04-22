@@ -17,20 +17,54 @@ export default new Vuex.Store({
   },
   state: {
     app_settings: {
-      name: 'Template Application'
+      name: 'Aviator',
+      theme: 'light'
+    },
+    loggedIn: true,
+    user_settings: {
+      type: 'student',
+      firstname: 'Benjamin',
+      surname: 'Broad',
+      email: 'me@benbroad.com'
     }
   },
   mutations: {
-
+    LOGIN (state) {
+      state.loggedIn = true;
+    },
+    LOGOUT (state) {
+      state.loggedIn = false;
+    },
+    CHANGE_USER_TYPE (state, data) {
+      switch(data) {
+        case 'student':
+          state.user_settings.type = 'student';
+          break;
+        case 'admin':
+          state.user_settings.type = 'admin';
+          break;
+        case 'school':
+          state.user_settings.type = 'school';
+          break;
+        default:
+          state.user_settings.type = 'student';
+          break;
+      }
+    }
   },
   actions: {
-    add_notey (context){
-      return new Promise((resolve, reject) => {
 
-        Vue.prototype.$notifaye.add('Something');
-
-      });
+    login (context){
+      context.commit('LOGIN');
     },
+
+    logout (context){
+      context.commit('LOGOUT');
+    },
+
+    change_user_type (context, data){
+      context.commit('CHANGE_USER_TYPE', data);
+    }
 
 
   },

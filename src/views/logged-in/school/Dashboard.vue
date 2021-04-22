@@ -12,10 +12,10 @@
 
 
 export default {
-  name: 'home',
+  name: 'school-dashboard',
   data: function(){
     return {
-      title: 'Home',
+      title: 'School Dashboard',
     }
   },
   mounted(){

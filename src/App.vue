@@ -1,17 +1,14 @@
 <template>
-  <div class="full-width center-content">
+  <div class="full-width">
+    <main-menu/>
 
-    <div v-if="loggedIn" class="logged-in">
 
-    </div>
+    <div v-if="loggedIn" class="logged-in"></div>
 
     <div v-if="!loggedIn" class="logged-out">
-      <h1>{{this.$store.state.app_settings.name}}</h1>
-      <main-menu/>
       <router-view v-on:listchange="listchange"></router-view>
     </div>
 
-<notification-area :list="notes"/>
 
   </div>
 </template>
@@ -50,10 +47,6 @@ export default {
 
 .full-width {
   width: 100%;
-}.center-content {
-  display: flex;
-  justify-content: center;
-  align-items: center;
 }
 
 .logged-in {width: 100vw;
@@ -61,8 +54,14 @@ export default {
             background-color: #9fb09d;}
 
 .logged-out {width: 100vw;
-            height: 100vh;
-            background-color: #e8b2b2;}
+            height: calc(100vh - #{$main_menu_height});
+            padding-top: $main_menu_height;
+            position: fixed;
+            top: 0;
+            left: 0;
+            overflow-x: hidden;
+            overflow-y: scroll;
+            background-color: #ffffff;}
 
 
 </style>

@@ -12,10 +12,10 @@
 
 
 export default {
-  name: 'home',
+  name: 'tutors',
   data: function(){
     return {
-      title: 'Home',
+      title: 'Tutors',
     }
   },
   mounted(){
