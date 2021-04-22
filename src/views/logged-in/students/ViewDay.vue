@@ -1,7 +1,7 @@
 <template>
   <div class="calendar-view">
     <div class="left">
-
+      <div class="aircraft-details"></div>
       <div class="aircraft-details" v-for="aircraft in aircrafts" :key="concat('aircraft',aircraft.id)">
         <div class="plate">{{aircraft.plate}}</div>
         <div class="title">{{aircraft.title}}</div>
@@ -9,7 +9,9 @@
 
     </div>
     <div class="right">
-
+      <div class="aircraft-bookings">
+        <div v-for="(index) in 48" class="time-slot time">{{indexToTime(index)}}</div>
+      </div>
       <div class="aircraft-bookings" v-for="aircraft in aircrafts" :key="concat('booking',aircraft.id)">
         <div v-for="(index) in 48" class="time-slot"></div>
       </div>
@@ -41,6 +43,31 @@ export default {
 
   },
   methods: {
+    indexToTime:function(index){
+      let modulus = index % 2;
+      if(modulus==1){
+        index--;
+        let result = index/2;
+        if(result<10){
+          return '0'+result+':00';
+        }
+        else{
+          return result+':00';
+        }
+      }
+      else{
+        if(this.$store.state.user_settings.gui.showHalfHours==true){
+          index--;
+          let result = (index/2) - 0.5;
+          if(result<10){
+            return '0'+result+':30';
+          }
+          else{
+            return result+':30';
+          }
+        }
+      }
+    },
     concat: function(type, key){
       return type+'-'+key;
     }
@@ -51,32 +78,36 @@ export default {
 <style lang="scss" scoped>
 @import '@/styles/main.scss';
 
+$left_menu_width: 15rem;
 
 .calendar-view {width: 100%;
                 height: calc(#{$content_height} - #{$control-height});
                 background-color: transparent;
-                display: grid;
+                display: block;
+                font-size: 0;
                 overflow: hidden;
-                min-width: 0;
-                grid-template-columns: 15rem auto;
 
-        > .left {grid-column-start: 1;
-                grid-column-end: 1;
-                grid-row-start: 1;
-                grid-row-end: 2;
-                border-right: 1px solid #e3e3e3;
-                background-color: transparent;}
+        > .left {width: $left_menu_width;
+                  font-size: 1;
+                  display: inline-block;
+                  vertical-align: top;
+                  height: calc(#{$content_height} - #{$control-height});
+                  border-right: 1px solid #e3e3e3;
+                  background-color: transparent;}
 
-        > .right {grid-column-start: 2;
-                grid-column-end: 2;
-                grid-row-start: 1;
-                grid-row-end: 2;
-                background-color: transparent;
-                overflow: scroll;}
+        > .right {width: calc(100vw - (#{$left_menu_width} + 1px));
+                  height: calc(#{$content_height} - #{$control-height});
+                  font-size: 1;
+                  display: inline-block;
+                  vertical-align: top;
+                  white-space: nowrap;
+                  background-color: transparent;
+                  overflow-x: scroll;}
               }
 
 .aircraft-details {width: calc(100% - 1rem);
           height: 1.5rem;
+          max-height: 1.5rem;
           padding: 0.5rem;
           border-bottom: 1px solid #e3e3e3;
 
@@ -106,18 +137,26 @@ export default {
                     text-align: center;}
         }
 
-.aircraft-bookings:nth-child(odd) {background-color: #d4bdbd;}
+.aircraft-bookings:nth-child(even) {
+                > .time-slot {background-color: #fbfbfb;
+                              background-color: rgb(150, 164, 148);}
+                }
+
 .aircraft-bookings {
-          height: 2.5rem;
+          height: calc(2.5rem + 1px);
           padding: 0rem;
           width: auto;
-          border-bottom: 1px solid #e3e3e3;
+          min-width: 100%;
 
           > .time-slot {display: inline-block;
-                        height: 2.5rem;
-                        min-width: 5rem;
+                        height: calc(2.5rem + 1px);
+                        min-width: 3.5rem;
                         vertical-align: top;
                         border-right: 1px solid #e3e3e3;
                       }
+          > .time {font-size: 1rem;
+                  line-height: 2.5rem;
+                  text-align: center;
+                  font-weight: 600;}
         }
 </style>

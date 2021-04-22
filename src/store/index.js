@@ -25,7 +25,10 @@ export default new Vuex.Store({
       type: 'student',
       firstname: 'Benjamin',
       surname: 'Broad',
-      email: 'me@benbroad.com'
+      email: 'me@benbroad.com',
+      gui: {
+        showHalfHours: false
+      }
     }
   },
   mutations: {
@@ -50,6 +53,10 @@ export default new Vuex.Store({
           state.user_settings.type = 'student';
           break;
       }
+    },
+
+    TOGGLE_SHOW_HALF_HOUR (state){
+      state.user_settings.gui.showHalfHours = !state.user_settings.gui.showHalfHours;
     }
   },
   actions: {
@@ -64,8 +71,11 @@ export default new Vuex.Store({
 
     change_user_type (context, data){
       context.commit('CHANGE_USER_TYPE', data);
-    }
+    },
 
+    toggle_show_half_hour (context){
+      context.commit('TOGGLE_SHOW_HALF_HOUR');
+    }
 
   },
   getters: {}

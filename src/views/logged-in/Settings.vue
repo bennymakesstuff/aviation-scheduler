@@ -3,6 +3,18 @@
 
     <div class="inner-content">
       <div class="title">{{title}}</div>
+
+      <div class="settings-section">
+        <div class="title">Interface Preferences</div>
+        <div class="settings">
+
+          <div class="setting">
+            <div class="switch"><button @click="changeShowHalfHour">{{halfHourBlock}}</button></div>
+            <div class="description">Show half hour block titles in Day Calendar.</div>
+          </div>
+
+        </div>
+      </div>
     </div>
 
   </div>
@@ -22,10 +34,14 @@ export default {
 
   },
   computed: {
-
+    halfHourBlock: function(){
+      return (this.$store.state.user_settings.gui.showHalfHours)?'On':'Off';
+    }
   },
   methods: {
-
+    changeShowHalfHour: function(){
+      this.$store.dispatch('toggle_show_half_hour');
+    }
   }
 }
 </script>
@@ -46,10 +62,24 @@ export default {
                       margin-right: auto;
                       outline: 1px solid #e3e3e3;
 
-            .title {font-size: 2rem;
+            > .title {font-size: 2rem;
                     font-weight: 200;
                     padding: 1rem;}
 
       }
   }
+
+.settings-section {width: calc(100% - 2rem);
+                  padding: 1rem;
+
+            > .title {font-size: 1.4rem;
+                      font-weight: 600;}
+
+            > .settings {
+              > .setting {padding: 0.5rem;
+                > .switch {display: inline-block;margin-right: 0.5rem;}
+                > .description {display: inline-block;}
+              }
+            }
+              }
 </style>
